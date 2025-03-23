@@ -21,4 +21,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('books_app.urls')), #this is the books_app URLs
     path('api/', include('users_app.urls')), #this is the users_app URLs
+    path('api/', include('transactions_app.urls')), #this is the transactions_app URLs
 ]
