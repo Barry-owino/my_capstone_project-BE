@@ -33,3 +33,26 @@ class CheckoutBookView(APIView):
 
         return Response({"mesaage": "Book checked out successfully."}, status=status.HTTP_200_OK)
 
+    class ReturnBookView(APIView):
+        permission_classes = [IsAuthenticated]
+
+        def post(self, request, book_id):
+            user = request.user
+            try:
+                checkout = BookCheckout.objects.get(user=user, book_id=book_id, return_date__isnull=True)
+            except Bookcheckout.DoesNotExist:
+                return Response({"error": "No active checkout record found."}, status=status.HTTP_400_BAD_REQUEST)
+
+            checkout.return_date = now()
+            checkout.save()
+
+            book = checkout.book
+            book.available_copies += 1
+            book.save()
+
+            return Response({"message": "Book returned successfully."}, status=status.HTTP_200_OK)
+
+
+
+
+
