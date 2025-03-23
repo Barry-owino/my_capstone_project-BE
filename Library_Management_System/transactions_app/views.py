@@ -7,7 +7,7 @@ from rest_framework import status
 from django.utils.timezone import now
 from books_app.models import Book
 from .models import BookCheckout
-
+from .serializers import BookCheckoutSerializer
 # Create your views here.
 
 class CheckoutBookView(APIView):
@@ -29,7 +29,9 @@ class CheckoutBookView(APIView):
         book.available_copies -=1
         book.save()
 
-        BookCheckout.objects.create(user=user, book=book, checkout_date=now())
+        checkout = BookCheckout.objects.create(user=user, book=book, checkout_date=now())
+        serializer = BookCheckoutSerializer(checkout)
+
 
         return Response({"mesaage": "Book checked out successfully."}, status=status.HTTP_200_OK)
 
@@ -50,5 +52,7 @@ class ReturnBookView(APIView):
         book = checkout.book
         book.available_copies += 1
         book.save()
+
+        serializer = BookCheckoutSerializer(checkout_record)
 
         return Response({"message": "Book returned successfully."}, status=status.HTTP_200_OK)
