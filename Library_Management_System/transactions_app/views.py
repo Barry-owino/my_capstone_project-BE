@@ -6,8 +6,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.utils.timezone import now
 from books_app.models import Book
-from .models import BookCheckout
-from .serializers import BookCheckoutSerializer
+from .models import Transaction
+from .serializers import TransactionSerializer
 # Create your views here.
 
 class CheckoutBookView(APIView):

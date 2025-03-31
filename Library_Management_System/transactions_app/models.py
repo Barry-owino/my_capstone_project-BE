@@ -5,8 +5,9 @@ from books_app.models import Book
 
 # Create your models here.
 
-class BookCheckout(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+class Transaction(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='transactions')
+    book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='transactions')
     checkout_date = models.DateTimeField(default=now)
     return_date = models.DateTimeField(null=True, blank=True)
 
