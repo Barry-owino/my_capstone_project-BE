@@ -18,22 +18,22 @@ class CheckoutBookView(APIView):
         try:
             book = Book.objects.get(id=book_id)
         except Book.DoesNotExist:
-            return Response({"error": "Book not exist."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Book does not exist."}, status=status.HTTP_404_NOT_FOUND)
 
         if book.copies_available <= 0:
             return Response({"error": "No copies available for this book."}, status=status.HTTP_400_BAD_REQUEST)
 
-        if BookCheckout.objects.filter(user=user, book=book, return_date__isnull=True).exist():
+        if Transaction.objects.filter(user=user, book=book, return_date__isnull=True).exists():
             return Response({"error": "You have already checked out this book."}, status=status.HTTP_400_BAD_REQUEST)
 
-        book.available_copies -=1
+        book.copies_available -= 1
         book.save()
 
-        checkout = BookCheckout.objects.create(user=user, book=book, checkout_date=now())
-        serializer = BookCheckoutSerializer(checkout)
+        transaction = Transaction.objects.create(user=user, book=book, checkout_date=now())
+        serializer = TransactionSerializer(transaction)
 
 
-        return Response({"mesaage": "Book checked out successfully."}, status=status.HTTP_200_OK)
+        return Response({"message": "Book checked out successfully."}, status=status.HTTP_201_CREATED)
 
 
 class ReturnBookView(APIView):
@@ -41,18 +41,18 @@ class ReturnBookView(APIView):
 
     def post(self, request, book_id):
         user = request.user
-        checkout = BookCheckout.objects.filter(user=user, book_id=book_id, return_date__isnull=True).first()
+        transaction = Transaction.objects.filter(user=user, book_id=book_id, return_date__isnull=True).first()
 
-        if not checkout:
+        if not transaction:
             return Response({"error": "No active checkout record found."}, status=status.HTTP_400_BAD_REQUEST)
 
-        checkout.return_date = now()
-        checkout.save()
+        transaction.return_date = now()
+        transaction.save()
 
-        book = checkout.book
-        book.available_copies += 1
+        book = transaction.book
+        book.copies_available += 1
         book.save()
 
-        serializer = BookCheckoutSerializer(checkout_record)
+        serializer = TransactionSerializer(transaction)
 
-        return Response({"message": "Book returned successfully."}, status=status.HTTP_200_OK)
+        return Response({"message": "Book returned successfully.", "data": serializer.data}, status=status.HTTP_200_OK)
