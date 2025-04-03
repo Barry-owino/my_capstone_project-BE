@@ -56,3 +56,22 @@ class ReturnBookView(APIView):
         serializer = TransactionSerializer(transaction)
 
         return Response({"message": "Book returned successfully.", "data": serializer.data}, status=status.HTTP_200_OK)
+
+
+class TransactionListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user_id = request.query_params.get('user_id')
+        book_id = request.query_params.get('book_id')
+
+        transactions = Transaction.objects.select_related('book').all()
+
+        if user_id:
+            transactions = transactions.filter(user_id=user_id)
+        if book_id:
+            transactions = transactions.filter(book_id=book_id)
+
+        serializer = TransactionSerializer(transactions, many=True)
+
+        return Response({"count": transactions.count(), "transactions": serializer.data}, status.HTTP_200_OK)
